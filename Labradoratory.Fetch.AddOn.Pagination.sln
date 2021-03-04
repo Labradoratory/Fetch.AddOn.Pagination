@@ -1,0 +1,47 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30225.117
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{7C890518-E92C-4090-B10E-39333D8A37FD}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{184DE360-512C-492D-8165-270F38C0ECF3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{76FD713C-6CB6-41D1-8EE0-12FCF0B1F18B}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		azure-pipelines.yml = azure-pipelines.yml
+		LICENSE = LICENSE
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Labradoratory.Fetch.AddOn.Pagination", "src\Labradoratory.Fetch.AddOn.Pagination\Labradoratory.Fetch.AddOn.Pagination.csproj", "{6504BAF9-B0B5-4249-8903-C2739AE83B03}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Labradoratory.Fetch.AddOn.Pagination.Test", "test\Labradoratory.Fetch.AddOn.Pagination.Test\Labradoratory.Fetch.AddOn.Pagination.Test.csproj", "{5E77D2D0-07DE-40D3-8B89-A11584AACE17}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6504BAF9-B0B5-4249-8903-C2739AE83B03}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6504BAF9-B0B5-4249-8903-C2739AE83B03}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6504BAF9-B0B5-4249-8903-C2739AE83B03}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6504BAF9-B0B5-4249-8903-C2739AE83B03}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5E77D2D0-07DE-40D3-8B89-A11584AACE17}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5E77D2D0-07DE-40D3-8B89-A11584AACE17}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5E77D2D0-07DE-40D3-8B89-A11584AACE17}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5E77D2D0-07DE-40D3-8B89-A11584AACE17}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{6504BAF9-B0B5-4249-8903-C2739AE83B03} = {7C890518-E92C-4090-B10E-39333D8A37FD}
+		{5E77D2D0-07DE-40D3-8B89-A11584AACE17} = {184DE360-512C-492D-8165-270F38C0ECF3}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {06558C3B-3568-487E-A78D-49CEF858B675}
+	EndGlobalSection
+EndGlobal
