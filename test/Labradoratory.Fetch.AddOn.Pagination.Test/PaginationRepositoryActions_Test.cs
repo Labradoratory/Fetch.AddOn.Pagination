@@ -67,7 +67,7 @@ namespace Labradoratory.Fetch.AddOn.Pagination.Test
             var subject = new PaginationRepositoryActions<TestEntity>(mockRepository.Object, new Uri(baseUriString));
             var result = await subject.GetPageAsync(expectedPage, expectedPageSize, CancellationToken.None);
 
-            Assert.Equal(null, result.Next);
+            Assert.Null(result.Next);
         }
 
         public class TestEntity : Entity, IPageable
