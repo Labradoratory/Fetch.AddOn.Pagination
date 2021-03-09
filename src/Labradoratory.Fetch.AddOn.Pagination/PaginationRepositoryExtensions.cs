@@ -32,7 +32,7 @@ namespace Labradoratory.Fetch.AddOn.Pagination
         /// <param name="pageSize">Size of the page.</param>
         /// <param name="cancellationToken">[Optional] The token to monitor for cancellation requests.</param>
         /// <returns>The page of entities.</returns>
-        public static Task<ResultPage<TEntity>> GetPageAsync<TEntity>(this Repository<TEntity> repository, int page, int pageSize, CancellationToken cancellationToken = default) where TEntity : Entity, IPageable
+        public static Task<ResultPage<TEntity>> GetPageAsync1<TEntity>(this Repository<TEntity> repository, int page, int pageSize, CancellationToken cancellationToken = default) where TEntity : Entity, IPageable
         {
             if (repository is ISupportsPagination<TEntity> sp)
                 return sp.GetPageAsync(page, pageSize, cancellationToken);
@@ -49,7 +49,27 @@ namespace Labradoratory.Fetch.AddOn.Pagination
         /// <param name="pageSize">Size of the page.</param>
         /// <param name="cancellationToken">[Optional] The token to monitor for cancellation requests.</param>
         /// <returns>The page of entities.</returns>
-        public static Task<ResultPage<TEntity>> GetPageAsync<TEntity>(this Repository<TEntity> repository, HttpRequest httpRequest, CancellationToken cancellationToken = default) where TEntity : Entity, IPageable
+        public static async Task<ResultPageWithNext<TEntity>> GetPageWithNextAsync<TEntity>(this Repository<TEntity> repository, int page, int pageSize, Uri baseUri, CancellationToken cancellationToken = default) where TEntity : Entity, IPageable
+        {
+            if (repository is ISupportsPagination<TEntity> sp)
+            {
+                var result = await sp.GetPageAsync(page, pageSize, cancellationToken);
+                return result.GetWithNext(baseUri);
+            }
+
+            throw RepositoryNotExtended<TEntity>();
+        }
+
+        /// <summary>
+        /// Gets the page of entities.
+        /// </summary>
+        /// <typeparam name="TEntity">The type of the entity.</typeparam>
+        /// <param name="repository">The repository.</param>
+        /// <param name="page">The page number.</param>
+        /// <param name="pageSize">Size of the page.</param>
+        /// <param name="cancellationToken">[Optional] The token to monitor for cancellation requests.</param>
+        /// <returns>The page of entities.</returns>
+        public static async Task<ResultPageWithNext<TEntity>> GetPageWithNextAsync<TEntity>(this Repository<TEntity> repository, HttpRequest httpRequest, CancellationToken cancellationToken = default) where TEntity : Entity, IPageable
         {
             if (repository is ISupportsPagination<TEntity> sp)
             {
@@ -61,7 +81,8 @@ namespace Labradoratory.Fetch.AddOn.Pagination
                 if (httpRequest.Query.TryGetValue("pagesize", out values) && int.TryParse(values.First(), out value))
                     pageSize = value;
 
-                return sp.GetPageAsync(page, pageSize, cancellationToken);
+                var result = await sp.GetPageAsync(page, pageSize, cancellationToken);
+                return result.GetWithNext(httpRequest.GetBaseUri());
             }
 
             throw RepositoryNotExtended<TEntity>();
