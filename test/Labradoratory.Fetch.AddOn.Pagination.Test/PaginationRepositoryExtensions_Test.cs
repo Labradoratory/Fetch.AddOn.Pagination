@@ -24,14 +24,45 @@ namespace Labradoratory.Fetch.AddOn.Pagination.Test
             var mockProcessorProvider = new Mock<IProcessorProvider>(MockBehavior.Strict);
 
             var mockRepository = new Mock<TestRepository>(MockBehavior.Strict, mockProcessorProvider.Object);
-            mockRepository.Setup(r => r.CountAsync(It.IsAny<CancellationToken>())).ReturnsAsync(expectedValue);
+            mockRepository.Setup(r => r.CountAsync(It.IsAny<Func<IQueryable<TestEntity>, IQueryable<TestEntity>>>(), It.IsAny<CancellationToken>())).ReturnsAsync(expectedValue);
 
             var subject = mockRepository.Object;
             
-            var result = await subject.CountAsync(CancellationToken.None);
+            var result = await subject.CountAsync(cancellationToken: CancellationToken.None);
 
             Assert.Equal(expectedValue, result);
-            mockRepository.Verify(r => r.CountAsync(It.IsAny<CancellationToken>()), Times.Once);
+            mockRepository.Verify(r => r.CountAsync(It.IsAny<Func<IQueryable<TestEntity>, IQueryable<TestEntity>>>(), It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task CountAsync_AppliesFilter()
+        {
+            var mockProcessorProvider = new Mock<IProcessorProvider>(MockBehavior.Strict);
+
+            var items = new List<TestEntity>
+            {
+                new TestEntity { IntValue = 1 },
+                new TestEntity { IntValue = 2 },
+                new TestEntity { IntValue = 3 },
+                new TestEntity { IntValue = 4 },
+                new TestEntity { IntValue = 5 },
+                new TestEntity { IntValue = 6 }
+            }.AsQueryable();
+
+            var filter = new Func<IQueryable<TestEntity>, IQueryable<TestEntity>>(query => query.Where(t => t.IntValue > 3));
+            var expectedCount = filter(items).Count();
+
+            var mockRepository = new Mock<TestRepository>(MockBehavior.Strict, mockProcessorProvider.Object);
+            mockRepository
+                .Setup(r => r.CountAsync(It.IsAny<Func<IQueryable<TestEntity>, IQueryable<TestEntity>>>(), It.IsAny<CancellationToken>()))
+                .Returns<Func<IQueryable<TestEntity>, IQueryable<TestEntity>>, CancellationToken>((f, ct) => Task.FromResult(f(items).Count()));
+
+            var subject = mockRepository.Object;
+
+            var result = await subject.CountAsync(filter, CancellationToken.None);
+
+            Assert.Equal(expectedCount, result);
+            mockRepository.Verify(r => r.CountAsync(It.IsAny<Func<IQueryable<TestEntity>, IQueryable<TestEntity>>>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -45,16 +76,41 @@ namespace Labradoratory.Fetch.AddOn.Pagination.Test
 
             var mockRepository = new Mock<TestRepository>(MockBehavior.Strict, mockProcessorProvider.Object);
             mockRepository
-                .Setup(r => r.GetPageAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
-                .Returns<int, int, CancellationToken>((p, ps, ct) => Task.FromResult(new ResultPage<TestEntity>(p, ps, expectedResult)));
+                .Setup(r => r.GetPageAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<Func<IQueryable<TestEntity>, IQueryable<TestEntity>>>(), It.IsAny<CancellationToken>()))
+                .Returns<int, int, Func<IQueryable<TestEntity>, IQueryable<TestEntity>>, CancellationToken>((p, ps, f, ct) => Task.FromResult(new ResultPage<TestEntity>(p, ps, expectedResult)));
 
             var subject = mockRepository.Object;
-            var result = await subject.GetPageAsync(expectedPage, expectedPageSize, CancellationToken.None);
+            var result = await subject.GetPageAsync(expectedPage, expectedPageSize, cancellationToken: CancellationToken.None);
 
             Assert.Equal(expectedPage, result.Page);
             Assert.Equal(expectedPageSize, result.PageSize);
             Assert.Equal(expectedResult, result.Results);
-            mockRepository.Verify(r => r.GetPageAsync(It.Is<int>(v => v == expectedPage), It.Is<int>(v => v == expectedPageSize), It.IsAny<CancellationToken>()), Times.Once);
+            mockRepository.Verify(r => r.GetPageAsync(It.Is<int>(v => v == expectedPage), It.Is<int>(v => v == expectedPageSize), It.IsAny<Func<IQueryable<TestEntity>, IQueryable<TestEntity>>>(), It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetPageAsync_AppliesFilter()
+        {
+            var expectedPage = 46;
+            var expectedPageSize = 5;
+            var items = new List<TestEntity> { new TestEntity { IntValue = 1 }, new TestEntity { IntValue = 2 } }.AsQueryable();
+            var filter = new Func<IQueryable<TestEntity>, IQueryable<TestEntity>>(query => query.Where(t => t.IntValue == 1));
+            var expectedResult = filter(items);
+
+            var mockProcessorProvider = new Mock<IProcessorProvider>(MockBehavior.Strict);
+
+            var mockRepository = new Mock<TestRepository>(MockBehavior.Strict, mockProcessorProvider.Object);
+            mockRepository
+                .Setup(r => r.GetPageAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<Func<IQueryable<TestEntity>, IQueryable<TestEntity>>>(), It.IsAny<CancellationToken>()))
+                .Returns<int, int, Func<IQueryable<TestEntity>, IQueryable<TestEntity>>, CancellationToken>((p, ps, f, ct) => Task.FromResult(new ResultPage<TestEntity>(p, ps, f(items))));
+
+            var subject = mockRepository.Object;
+            var result = await subject.GetPageAsync(expectedPage, expectedPageSize, filter, CancellationToken.None);
+
+            Assert.Equal(expectedPage, result.Page);
+            Assert.Equal(expectedPageSize, result.PageSize);
+            Assert.Equal(expectedResult, result.Results);
+            mockRepository.Verify(r => r.GetPageAsync(It.Is<int>(v => v == expectedPage), It.Is<int>(v => v == expectedPageSize), It.IsAny<Func<IQueryable<TestEntity>, IQueryable<TestEntity>>>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -72,17 +128,17 @@ namespace Labradoratory.Fetch.AddOn.Pagination.Test
 
             var mockRepository = new Mock<TestRepository>(MockBehavior.Strict, mockProcessorProvider.Object);
             mockRepository
-                .Setup(r => r.GetPageAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
-                .Returns<int, int, CancellationToken>((p, ps, ct) => Task.FromResult(new ResultPage<TestEntity>(p, ps, expectedResult)));
+                .Setup(r => r.GetPageAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<Func<IQueryable<TestEntity>, IQueryable<TestEntity>>>(), It.IsAny<CancellationToken>()))
+                .Returns<int, int, Func<IQueryable<TestEntity>, IQueryable<TestEntity>>, CancellationToken>((p, ps, f, ct) => Task.FromResult(new ResultPage<TestEntity>(p, ps, expectedResult)));
 
             var subject = mockRepository.Object;
-            var result = await subject.GetPageWithNextAsync(expectedPage, expectedPageSize, baseUri, CancellationToken.None);
+            var result = await subject.GetPageWithNextAsync(expectedPage, expectedPageSize, baseUri, cancellationToken: CancellationToken.None);
 
             Assert.Equal(expectedPage, result.Page);
             Assert.Equal(expectedPageSize, result.PageSize);
             Assert.Equal(expectedResult, result.Results);
             Assert.Equal(expectedUri, result.Next);
-            mockRepository.Verify(r => r.GetPageAsync(It.Is<int>(v => v == expectedPage), It.Is<int>(v => v == expectedPageSize), It.IsAny<CancellationToken>()), Times.Once);
+            mockRepository.Verify(r => r.GetPageAsync(It.Is<int>(v => v == expectedPage), It.Is<int>(v => v == expectedPageSize), It.IsAny<Func<IQueryable<TestEntity>, IQueryable<TestEntity>>>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -99,11 +155,11 @@ namespace Labradoratory.Fetch.AddOn.Pagination.Test
 
             var mockRepository = new Mock<TestRepository>(MockBehavior.Strict, mockProcessorProvider.Object);
             mockRepository
-                .Setup(r => r.GetPageAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
-                .Returns<int, int, CancellationToken>((p, ps, ct) => Task.FromResult(new ResultPage<TestEntity>(p, ps, expectedResult)));
+                .Setup(r => r.GetPageAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<Func<IQueryable<TestEntity>, IQueryable<TestEntity>>>(), It.IsAny<CancellationToken>()))
+                .Returns<int, int, Func<IQueryable<TestEntity>, IQueryable<TestEntity>>, CancellationToken>((p, ps, f, ct) => Task.FromResult(new ResultPage<TestEntity>(p, ps, expectedResult)));
 
             var subject = mockRepository.Object;
-            var result = await subject.GetPageWithNextAsync(expectedPage, expectedPageSize, baseUri, CancellationToken.None);
+            var result = await subject.GetPageWithNextAsync(expectedPage, expectedPageSize, baseUri, cancellationToken: CancellationToken.None);
 
             Assert.Null(result.Next);
         }
@@ -123,8 +179,8 @@ namespace Labradoratory.Fetch.AddOn.Pagination.Test
 
             var mockRepository = new Mock<TestRepository>(MockBehavior.Strict, mockProcessorProvider.Object);
             mockRepository
-                .Setup(r => r.GetPageAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
-                .Returns<int, int, CancellationToken>((p, ps, ct) => Task.FromResult(new ResultPage<TestEntity>(p, ps, expectedResult)));
+                .Setup(r => r.GetPageAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<Func<IQueryable<TestEntity>, IQueryable<TestEntity>>>(), It.IsAny<CancellationToken>()))
+                .Returns<int, int, Func<IQueryable<TestEntity>, IQueryable<TestEntity>>, CancellationToken > ((p, ps, f, ct) => Task.FromResult(new ResultPage<TestEntity>(p, ps, expectedResult)));
 
             var mockRequest = new Mock<HttpRequest>(MockBehavior.Strict);
             mockRequest.SetupGet(r => r.Query).Returns(new QueryCollection(new Dictionary<string, StringValues>
@@ -137,13 +193,13 @@ namespace Labradoratory.Fetch.AddOn.Pagination.Test
             mockRequest.SetupGet(r => r.Scheme).Returns("http");
 
             var subject = mockRepository.Object;
-            var result = await subject.GetPageWithNextAsync(mockRequest.Object, CancellationToken.None);
+            var result = await subject.GetPageWithNextAsync(mockRequest.Object, cancellationToken: CancellationToken.None);
 
             Assert.Equal(expectedPage, result.Page);
             Assert.Equal(expectedPageSize, result.PageSize);
             Assert.Equal(expectedResult, result.Results);
             Assert.Equal(expectedUri, result.Next);
-            mockRepository.Verify(r => r.GetPageAsync(It.Is<int>(v => v == expectedPage), It.Is<int>(v => v == expectedPageSize), It.IsAny<CancellationToken>()), Times.Once);
+            mockRepository.Verify(r => r.GetPageAsync(It.Is<int>(v => v == expectedPage), It.Is<int>(v => v == expectedPageSize), It.IsAny<Func<IQueryable<TestEntity>, IQueryable<TestEntity>>>(), It.IsAny<CancellationToken>()), Times.Once);
         }        
 
         public class TestRepository : Repository<TestEntity>, ISupportsPagination<TestEntity>
@@ -152,12 +208,12 @@ namespace Labradoratory.Fetch.AddOn.Pagination.Test
                 : base(new ProcessorPipeline(processorProvider))
             {}
 
-            public virtual Task<int> CountAsync(CancellationToken cancellationToken = default)
+            public virtual Task<int> CountAsync(Func<IQueryable<TestEntity>, IQueryable<TestEntity>> filter = null, CancellationToken cancellationToken = default)
             {
                 throw new NotImplementedException();
             }
 
-            public virtual Task<ResultPage<TestEntity>> GetPageAsync(int page, int pageSize, CancellationToken cancellationToken = default)
+            public virtual Task<ResultPage<TestEntity>> GetPageAsync(int page, int pageSize, Func<IQueryable<TestEntity>, IQueryable<TestEntity>> filter = null, CancellationToken cancellationToken = default)
             {
                 throw new NotImplementedException();
             }
@@ -195,6 +251,8 @@ namespace Labradoratory.Fetch.AddOn.Pagination.Test
 
         public class TestEntity : Entity, IPageable
         {
+            public int IntValue { get; set; }
+
             public override object[] DecodeKeys(string encodedKeys)
             {
                 throw new NotImplementedException();
