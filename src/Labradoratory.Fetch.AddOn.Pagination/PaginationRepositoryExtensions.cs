@@ -38,7 +38,7 @@ namespace Labradoratory.Fetch.AddOn.Pagination
         /// <param name="filter">[Optional] A query filter to apply when counting.</param>
         /// <param name="cancellationToken">[Optional] The token to monitor for cancellation requests.</param>
         /// <returns>The page of entities.</returns>
-        public static Task<ResultPage<TEntity>> GetPageAsync1<TEntity>(
+        public static Task<ResultPage<TEntity>> GetPageAsync<TEntity>(
             this Repository<TEntity> repository,
             int page,
             int pageSize,
