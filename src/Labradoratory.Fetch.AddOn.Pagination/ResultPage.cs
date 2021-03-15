@@ -3,17 +3,17 @@ using System.Collections.Generic;
 
 namespace Labradoratory.Fetch.AddOn.Pagination
 {
-    public class ResultPage<TEntity>
+    public class ResultPage<TEntity> : PageInfo
     {
-        public ResultPage(int page, int pageSize, IEnumerable<TEntity> results)
+        public ResultPage(PageInfo pageInfo, IEnumerable<TEntity> results)
+            : this(pageInfo.Page, pageInfo.PageSize, results)
+        {}
+
+        public ResultPage(uint page, uint pageSize, IEnumerable<TEntity> results)
+            : base(page, pageSize)
         {
-            Page = page;
-            PageSize = pageSize;
             Results = results;
         }
-
-        public int Page { get; }
-        public int PageSize { get; }
 
         public IEnumerable<TEntity> Results { get; }
 

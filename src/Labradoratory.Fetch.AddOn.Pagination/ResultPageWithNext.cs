@@ -6,7 +6,11 @@ namespace Labradoratory.Fetch.AddOn.Pagination
 {
     public class ResultPageWithNext<TEntity> : ResultPage<TEntity>
     {
-        public ResultPageWithNext(int page, int pageSize, IEnumerable<TEntity> results, Uri baseUri)
+        public ResultPageWithNext(PageInfo pageInfo, IEnumerable<TEntity> results, Uri baseUri)
+            : this(pageInfo.Page, pageInfo.PageSize, results, baseUri)
+        { }
+
+        public ResultPageWithNext(uint page, uint pageSize, IEnumerable<TEntity> results, Uri baseUri)
             : base(page, pageSize, results)
         {
             var query = System.Web.HttpUtility.ParseQueryString("");

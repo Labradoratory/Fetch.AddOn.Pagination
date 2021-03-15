@@ -33,21 +33,19 @@ namespace Labradoratory.Fetch.AddOn.Pagination
         /// </summary>
         /// <typeparam name="TEntity">The type of the entity.</typeparam>
         /// <param name="repository">The repository.</param>
-        /// <param name="page">The page number.</param>
-        /// <param name="pageSize">Size of the page.</param>
+        /// <param name="pageInfo">Info defining the page number and size.</param>
         /// <param name="filter">[Optional] A query filter to apply when counting.</param>
         /// <param name="cancellationToken">[Optional] The token to monitor for cancellation requests.</param>
         /// <returns>The page of entities.</returns>
         public static Task<ResultPage<TEntity>> GetPageAsync<TEntity>(
             this Repository<TEntity> repository,
-            int page,
-            int pageSize,
+            PageInfo pageInfo,
             Func<IQueryable<TEntity>, IQueryable<TEntity>> filter = null,
             CancellationToken cancellationToken = default)
                 where TEntity : Entity, IPageable
         {
             if (repository is ISupportsPagination<TEntity> sp)
-                return sp.GetPageAsync(page, pageSize, filter, cancellationToken);
+                return sp.GetPageAsync(pageInfo, filter, cancellationToken);
 
             throw RepositoryNotExtended<TEntity>();
         }
@@ -63,9 +61,8 @@ namespace Labradoratory.Fetch.AddOn.Pagination
         /// <param name="cancellationToken">[Optional] The token to monitor for cancellation requests.</param>
         /// <returns>The page of entities.</returns>
         public static async Task<ResultPageWithNext<TEntity>> GetPageWithNextAsync<TEntity>(
-            this Repository<TEntity> repository, 
-            int page,
-            int pageSize,
+            this Repository<TEntity> repository,
+            PageInfo pageInfo,
             Uri baseUri,
             Func<IQueryable<TEntity>, IQueryable<TEntity>> filter = null,
             CancellationToken cancellationToken = default)
@@ -73,7 +70,7 @@ namespace Labradoratory.Fetch.AddOn.Pagination
         {
             if (repository is ISupportsPagination<TEntity> sp)
             {
-                var result = await sp.GetPageAsync(page, pageSize, filter, cancellationToken);
+                var result = await sp.GetPageAsync(pageInfo, filter, cancellationToken);
                 return result.GetWithNext(baseUri);
             }
 
@@ -99,15 +96,15 @@ namespace Labradoratory.Fetch.AddOn.Pagination
         {
             if (repository is ISupportsPagination<TEntity> sp)
             {
-                var page = 0;
-                if (httpRequest.Query.TryGetValue("page", out var values) && int.TryParse(values.First(), out var value))
+                uint? page = null;
+                if (httpRequest.Query.TryGetValue("page", out var values) && uint.TryParse(values.First(), out var value))
                     page = value;
 
-                var pageSize = 100;
-                if (httpRequest.Query.TryGetValue("pagesize", out values) && int.TryParse(values.First(), out value))
+                uint? pageSize = null;
+                if (httpRequest.Query.TryGetValue("pagesize", out values) && uint.TryParse(values.First(), out value))
                     pageSize = value;
 
-                var result = await sp.GetPageAsync(page, pageSize, filter, cancellationToken);
+                var result = await sp.GetPageAsync(new PageInfo(page, pageSize), filter, cancellationToken);
                 return result.GetWithNext(httpRequest.GetBaseUri());
             }
 
