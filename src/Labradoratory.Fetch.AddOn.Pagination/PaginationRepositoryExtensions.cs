@@ -96,12 +96,12 @@ namespace Labradoratory.Fetch.AddOn.Pagination
         {
             if (repository is ISupportsPagination<TEntity> sp)
             {
-                uint? page = null;
-                if (httpRequest.Query.TryGetValue("page", out var values) && uint.TryParse(values.First(), out var value))
+                int? page = null;
+                if (httpRequest.Query.TryGetValue("page", out var values) && int.TryParse(values.First(), out var value))
                     page = value;
 
-                uint? pageSize = null;
-                if (httpRequest.Query.TryGetValue("pagesize", out values) && uint.TryParse(values.First(), out value))
+                int? pageSize = null;
+                if (httpRequest.Query.TryGetValue("pagesize", out values) && int.TryParse(values.First(), out value))
                     pageSize = value;
 
                 var result = await sp.GetPageAsync(new PageInfo(page, pageSize), filter, cancellationToken);

@@ -9,7 +9,7 @@ namespace Labradoratory.Fetch.AddOn.Pagination
             : this(pageInfo.Page, pageInfo.PageSize, results)
         {}
 
-        public ResultPage(uint page, uint pageSize, IEnumerable<TEntity> results)
+        public ResultPage(int page, int pageSize, IEnumerable<TEntity> results)
             : base(page, pageSize)
         {
             Results = results;

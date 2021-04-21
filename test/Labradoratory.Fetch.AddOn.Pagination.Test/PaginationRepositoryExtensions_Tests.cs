@@ -68,8 +68,8 @@ namespace Labradoratory.Fetch.AddOn.Pagination.Test
         [Fact]
         public async Task GetPageAsync_CallsRepository()
         {
-            var expectedPage = 46u;
-            var expectedPageSize = 5u;
+            var expectedPage = 46;
+            var expectedPageSize = 5;
             var expectedPageInfo = new PageInfo(expectedPage, expectedPageSize);
             var expectedResult = new List<TestEntity> { new TestEntity(), new TestEntity() };
 
@@ -92,8 +92,8 @@ namespace Labradoratory.Fetch.AddOn.Pagination.Test
         [Fact]
         public async Task GetPageAsync_AppliesFilter()
         {
-            var expectedPage = 46u;
-            var expectedPageSize = 5u;
+            var expectedPage = 46;
+            var expectedPageSize = 5;
             var expectedPageInfo = new PageInfo(expectedPage, expectedPageSize);
             var items = new List<TestEntity> { new TestEntity { IntValue = 1 }, new TestEntity { IntValue = 2 } }.AsQueryable();
             var filter = new Func<IQueryable<TestEntity>, IQueryable<TestEntity>>(query => query.Where(t => t.IntValue == 1));
@@ -118,8 +118,8 @@ namespace Labradoratory.Fetch.AddOn.Pagination.Test
         [Fact]
         public async Task GetPageWithNextAsync_CallsRepository()
         {
-            var expectedPage = 123u;
-            var expectedPageSize = 2u;
+            var expectedPage = 123;
+            var expectedPageSize = 2;
             var expectedPageInfo = new PageInfo(expectedPage, expectedPageSize);
             var expectedResult = new List<TestEntity> { new TestEntity(), new TestEntity() };
 
@@ -147,8 +147,8 @@ namespace Labradoratory.Fetch.AddOn.Pagination.Test
         [Fact]
         public async Task GetPageWithNextAsync_NextNullWhenLastPage()
         {
-            var expectedPage = 123u;
-            var expectedPageSize = 456u;
+            var expectedPage = 123;
+            var expectedPageSize = 456;
             var expectedPageInfo = new PageInfo(expectedPage, expectedPageSize);
             var expectedResult = new List<TestEntity>();
 
@@ -171,8 +171,8 @@ namespace Labradoratory.Fetch.AddOn.Pagination.Test
         [Fact]
         public async Task GetPageWithNextAsync_HttpRequest_CallsRepository()
         {
-            var expectedPage = 123u;
-            var expectedPageSize = 2u;
+            var expectedPage = 123;
+            var expectedPageSize = 2;
             var expectedPageInfo = new PageInfo(expectedPage, expectedPageSize);
             var expectedResult = new List<TestEntity> { new TestEntity(), new TestEntity() };
 

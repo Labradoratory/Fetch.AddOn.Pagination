@@ -7,10 +7,10 @@ namespace Labradoratory.Fetch.AddOn.Pagination
     /// </summary>
     public class PageInfo
     {
-        public const uint DefaultPage = 1;
-        public const uint DefaultPageSize = 100;
+        public const int DefaultPage = 1;
+        public const int DefaultPageSize = 100;
 
-        public PageInfo(uint? page = null, uint? pageSize = null)
+        public PageInfo(int? page = null, int? pageSize = null)
         {
             if(page == null || page == 0)
                 Page = DefaultPage;
@@ -26,12 +26,12 @@ namespace Labradoratory.Fetch.AddOn.Pagination
         /// <summary>
         /// Gets the page number.
         /// </summary>
-        public uint Page { get; }
+        public int Page { get; }
 
         /// <summary>
         /// Gets the size of the page.
         /// </summary>
-        public uint PageSize { get; }
+        public int PageSize { get; }
 
         /// <inheritdoc />
         public override bool Equals(object obj)
