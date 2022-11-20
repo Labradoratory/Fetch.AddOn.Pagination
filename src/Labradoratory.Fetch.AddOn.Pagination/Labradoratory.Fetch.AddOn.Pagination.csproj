@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Labradoratory.Fetch" Version="2.0.0-beta.2" />
+    <PackageReference Include="Labradoratory.Fetch" Version="2.0.0-beta.3" />
   </ItemGroup>
 
 </Project>
