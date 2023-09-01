@@ -44,7 +44,7 @@ steps:
 - task: GitVersion@5
   displayName: 'GitVersion'
   inputs:
-    runtime: core
+    runtime: full
     updateAssemblyInfo: true
     preferBundledVersion: false
 
@@ -53,6 +53,11 @@ steps:
   env:
     Action: '##vso[build.updatebuildnumber]'
     BuildVersion: $(GitVersion.SemVer)
+
+- task: UseDotNet@2
+  inputs:
+    packageType: 'sdk'
+    version: '3.1.x'
 
 - task: DotNetCoreCLI@2
   displayName: 'dotnet restore'
