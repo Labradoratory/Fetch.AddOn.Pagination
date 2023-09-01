@@ -1,0 +1,102 @@
+# ASP.NET Core (.NET Framework)
+# Build and test ASP.NET Core projects targeting the full .NET Framework.
+# Add steps that publish symbols, save build artifacts, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
+
+trigger:
+  branches:
+    include:
+      - master
+      - develop
+      - release/*
+      - hotfix/*
+      - bugfix/*
+      - feature/*
+  paths:
+    exclude:
+      - azure-pipelines.yml
+      - CODE_OF_CONDUCT.md
+      - gitversion.yml
+      - LICENSE
+      - README.md
+
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  solution: '**/*.sln'
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'Release'
+  isMaster: $[eq(variables['Build.SourceBranch'], 'refs/heads/master')]
+  isHotfix: $[startsWith(variables['Build.SourceBranch'], 'refs/heads/hotfix/')]
+  isRelease: $[startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')]
+  publishArtifacts: $[or(variables['isMaster'], variables['isHotfix'], variables['isRelease'])]
+
+steps:
+
+- powershell: |
+    Write-Host "isMaster: $(isMaster)"
+    Write-Host "isHotfix: $(isHotfix)"
+    Write-Host "isRelease: $(isRelease)"
+    Write-Host "publishArtifacts: $(publishArtifacts)"
+
+- task: GitVersion@5
+  displayName: 'GitVersion'
+  inputs:
+    runtime: full
+    updateAssemblyInfo: true
+    preferBundledVersion: false
+
+- script: echo %Action%%BuildVersion%
+  displayName: 'Set build version'
+  env:
+    Action: '##vso[build.updatebuildnumber]'
+    BuildVersion: $(GitVersion.SemVer)
+
+- task: UseDotNet@2
+  inputs:
+    packageType: 'sdk'
+    version: '3.1.x'
+
+- task: DotNetCoreCLI@2
+  displayName: 'dotnet restore'
+  inputs:
+    command: 'restore'
+    projects: '**/*.csproj'
+
+- task: DotNetCoreCLI@2
+  displayName: 'dotnet build $(buildConfiguration)'
+  inputs:
+    command: 'build'
+    projects: '**/*.csproj'
+    arguments: '--configuration $(buildConfiguration)'
+
+- task: DotNetCoreCLI@2
+  displayName: 'dotnet test $(buildConfiguration)'
+  inputs:
+    command: 'test'
+    projects: '**/*Test/*.csproj'
+    arguments: '--configuration $(buildConfiguration) /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura'
+
+- task: PublishCodeCoverageResults@1
+  inputs:
+    codeCoverageTool: 'Cobertura'
+    summaryFileLocation: '$(Build.SourcesDirectory)/test/**/coverage.cobertura.xml'
+
+- task: DotNetCoreCLI@2
+  displayName: 'dotnet pack $(buildConfiguration)'
+  condition: and(succeeded(), variables['publishArtifacts'])
+  inputs:
+    command: 'pack'
+    packagesToPack: '**/*.csproj;!**/*.Test.csproj'
+    nobuild: true
+    versioningScheme: 'byEnvVar'
+    versionEnvVar: 'GitVersion.SemVer'
+
+- task: PublishBuildArtifacts@1
+  condition: and(succeeded(), variables['publishArtifacts'])
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: '_Labradoratory.Fetch.AddOn.Pagination'
+    publishLocation: 'Container'
